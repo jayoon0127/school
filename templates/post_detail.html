@@ -1,0 +1,107 @@
+{% extends 'base.html' %}
+{% block content %}
+<div class="card">
+  <div>
+    {% if post.is_pinned %}<span class="pill">고정글</span>{% endif %}
+    {% if post.is_hot %}<span class="pill">인기글</span>{% endif %}
+    <span class="pill">{{ post.category }}</span>
+  </div>
+  <h2>{{ post.title }}</h2>
+  <div class="meta">{{ post.author.username }} · 조회 {{ post.view_count }} · 좋아요 {{ post.like_count }} · 싫어요 {{ post.dislike_count }} · 댓글 {{ post.comment_count }}</div>
+
+  <div class="card" style="background:var(--surface2);">
+    {{ post.content|safe }}
+  </div>
+
+  {% if post.attachments %}
+  <div class="card">
+    <h3 style="margin-top:0;">첨부파일</h3>
+    {% for a in post.attachments %}
+      <div>
+        <a href="{{ url_for('static', filename='uploads/' ~ a.stored_name) }}" target="_blank">{{ a.file_name }}</a>
+        <span class="muted">({{ a.media_type }})</span>
+      </div>
+    {% endfor %}
+  </div>
+  {% endif %}
+
+  <div class="actions">
+    <form method="post" action="{{ url_for('board.react', post_id=post.id, kind='like') }}" class="inline">
+      {{ comment_form.csrf_token }}
+      <button class="btn primary">좋아요 {{ post.like_count }}</button>
+    </form>
+    <form method="post" action="{{ url_for('board.react', post_id=post.id, kind='dislike') }}" class="inline">
+      {{ comment_form.csrf_token }}
+      <button class="btn">싫어요 {{ post.dislike_count }}</button>
+    </form>
+
+    {% if current_user.id == post.author_id or current_user.is_admin() %}
+      <a class="btn" href="{{ url_for('board.edit_post', post_id=post.id) }}">수정</a>
+      <form method="post" action="{{ url_for('board.delete_post', post_id=post.id) }}" class="inline">
+        {{ comment_form.csrf_token }}
+        <button class="btn danger">삭제</button>
+      </form>
+    {% endif %}
+  </div>
+</div>
+
+<div class="layout" style="margin-top:18px;">
+  <section>
+    <div class="card">
+      <h3 style="margin-top:0;">댓글</h3>
+      <form method="post" action="{{ url_for('board.create_comment', post_id=post.id) }}">
+        {{ comment_form.hidden_tag() }}
+        {{ comment_form.content(rows=4, class_='field') }}
+        {{ comment_form.submit(class_='btn primary') }}
+      </form>
+
+      {% for c in comments %}
+      <div class="card comment {% if c.parent_id %}reply{% endif %}">
+        <strong>{{ c.author.username }}</strong>
+        <div class="meta">{{ c.created_at }}</div>
+        <div>{{ c.content|safe }}</div>
+
+        <div class="actions" style="margin-top:10px;">
+          <form method="post" action="{{ url_for('board.create_comment', post_id=post.id) }}">
+            {{ comment_form.csrf_token }}
+            <input type="hidden" name="parent_id" value="{{ c.id }}">
+            <input type="text" name="content" class="field" placeholder="답글 작성">
+            <button class="btn">답글</button>
+          </form>
+
+          {% if current_user.id == c.author_id or current_user.is_admin() %}
+          <form method="post" action="{{ url_for('board.edit_comment', comment_id=c.id) }}">
+            {{ comment_form.csrf_token }}
+            <input type="text" name="content" class="field" value="{{ c.content|striptags }}">
+            <button class="btn">수정</button>
+          </form>
+          <form method="post" action="{{ url_for('board.delete_comment', comment_id=c.id) }}" class="inline">
+            {{ comment_form.csrf_token }}
+            <button class="btn danger">삭제</button>
+          </form>
+          {% endif %}
+
+          <form method="post" action="{{ url_for('board.report_comment', comment_id=c.id) }}">
+            {{ report_form.hidden_tag() }}
+            {{ report_form.reason(class_='field') }}
+            <button class="btn">댓글 신고</button>
+          </form>
+        </div>
+      </div>
+      {% endfor %}
+    </div>
+  </section>
+
+  <aside>
+    <div class="card">
+      <h3 style="margin-top:0;">게시글 신고</h3>
+      <form method="post" action="{{ url_for('board.report_post', post_id=post.id) }}">
+        {{ report_form.hidden_tag() }}
+        <label>사유 {{ report_form.reason(class_='field') }}</label>
+        <label>상세 {{ report_form.detail(rows=4, class_='field') }}</label>
+        {{ report_form.submit(class_='btn danger') }}
+      </form>
+    </div>
+  </aside>
+</div>
+{% endblock %}

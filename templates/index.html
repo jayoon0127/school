@@ -1,0 +1,75 @@
+{% extends 'base.html' %}
+{% block content %}
+<section class="card hero">
+  <div>
+    <span class="pill">중학교 커뮤니티</span>
+    <h1 style="margin:.3rem 0 0;font-size:2rem;">전체게시판 / 학년별 게시판 / 어드민</h1>
+    <p class="muted">인기글, 공지 고정, 첨부 업로드, 댓글, 좋아요/싫어요, 신고, 관리자 제재까지 한 번에 들어간 풀스택 예제.</p>
+  </div>
+  <div class="actions">
+    <a class="btn primary" href="{{ url_for('board.create_post') }}">새 글 작성</a>
+    {% if current_user.is_admin() %}
+      <a class="btn" href="{{ url_for('admin.dashboard') }}">어드민 바로가기</a>
+    {% endif %}
+  </div>
+</section>
+
+<div class="layout" style="margin-top:18px;">
+  <section>
+    <div class="card">
+      <form method="get" class="actions">
+        <select name="board" class="field" style="max-width:180px;margin:0;">
+          <option value="all" {% if board=='all' %}selected{% endif %}>전체게시판</option>
+          <option value="1" {% if board=='1' %}selected{% endif %}>1학년</option>
+          <option value="2" {% if board=='2' %}selected{% endif %}>2학년</option>
+          <option value="3" {% if board=='3' %}selected{% endif %}>3학년</option>
+        </select>
+        <select name="sort" class="field" style="max-width:160px;margin:0;">
+          <option value="hot" {% if sort=='hot' %}selected{% endif %}>인기순</option>
+          <option value="latest" {% if sort=='latest' %}selected{% endif %}>최신순</option>
+          <option value="comments" {% if sort=='comments' %}selected{% endif %}>댓글순</option>
+        </select>
+        <input type="text" name="q" value="{{ q }}" class="field" placeholder="제목 / 본문 / 작성자 검색" style="margin:0;">
+        <button class="btn primary">검색</button>
+      </form>
+    </div>
+
+    {% for post in posts %}
+    <article class="card post">
+      <div>
+        {% if post.is_pinned %}<span class="pill">고정글</span>{% endif %}
+        {% if post.is_hot %}<span class="pill">인기글</span>{% endif %}
+        <span class="pill">{{ {'all':'전체게시판','1':'1학년','2':'2학년','3':'3학년'}[post.board] }}</span>
+        <span class="pill">{{ post.category }}</span>
+      </div>
+      <div class="post-title">
+        <a href="{{ url_for('board.post_detail', post_id=post.id) }}">{{ post.title }}</a>
+      </div>
+      <div class="meta">
+        {{ post.author.username }} · 조회 {{ post.view_count }} · 좋아요 {{ post.like_count }} · 싫어요 {{ post.dislike_count }} · 댓글 {{ post.comment_count }}
+      </div>
+    </article>
+    {% else %}
+    <div class="card">게시글이 없습니다.</div>
+    {% endfor %}
+  </section>
+
+  <aside class="side-list">
+    <div class="card">
+      <h3 style="margin-top:0;">내 알림</h3>
+      {% for n in notifications %}
+        <div style="padding:10px 0;border-bottom:1px solid var(--line);">{{ n.message }}</div>
+      {% else %}
+        <div class="muted">알림이 없습니다.</div>
+      {% endfor %}
+    </div>
+    <div class="card">
+      <h3 style="margin-top:0;">게시판</h3>
+      <div class="pill">전체게시판</div>
+      <div class="pill">1학년</div>
+      <div class="pill">2학년</div>
+      <div class="pill">3학년</div>
+    </div>
+  </aside>
+</div>
+{% endblock %}

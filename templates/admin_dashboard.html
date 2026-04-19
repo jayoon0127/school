@@ -1,0 +1,93 @@
+{% extends 'base.html' %}
+{% block content %}
+<section class="card hero">
+  <div>
+    <span class="pill">관리자 전용</span>
+    <h1 style="margin:.3rem 0 0;font-size:2rem;">어드민 대시보드</h1>
+    <p class="muted">영구밴, 기간밴, 읽기 전용 제한, IP 밴, 글 삭제, 글 고정, 신고 처리.</p>
+  </div>
+</section>
+
+<div class="layout" style="margin-top:18px;">
+  <section>
+    <div class="card">
+      <h2>신고 처리</h2>
+      {% for r in reports %}
+      <div class="card">
+        <div><strong>#{{ r.id }}</strong> {{ r.target_type }} / {{ r.reason }} / {{ r.status }}</div>
+        <div class="muted">{{ r.detail or '-' }}</div>
+        {% if r.status != 'resolved' %}
+        <form method="post" action="{{ url_for('admin.resolve_report', report_id=r.id) }}">
+          {{ ban_form.csrf_token }}
+          <button class="btn">처리 완료</button>
+        </form>
+        {% endif %}
+      </div>
+      {% endfor %}
+    </div>
+
+    <div class="card">
+      <h2>게시글 관리</h2>
+      {% for p in posts %}
+      <div class="card">
+        <div class="post-title">{{ p.title }}</div>
+        <div class="meta">작성자 {{ p.author.username }} / 고정 {{ p.is_pinned }} / 숨김 {{ p.is_hidden }}</div>
+        <div class="actions" style="margin-top:10px;">
+          <form method="post" action="{{ url_for('admin.pin_post', post_id=p.id) }}">
+            {{ ban_form.csrf_token }}
+            <button class="btn">고정/해제</button>
+          </form>
+          <form method="post" action="{{ url_for('admin.hide_post', post_id=p.id) }}">
+            {{ ban_form.csrf_token }}
+            <button class="btn">숨김/해제</button>
+          </form>
+          <form method="post" action="{{ url_for('admin.delete_post_admin', post_id=p.id) }}">
+            {{ ban_form.csrf_token }}
+            <button class="btn danger">글 삭제</button>
+          </form>
+        </div>
+      </div>
+      {% endfor %}
+    </div>
+  </section>
+
+  <aside>
+    <div class="card">
+      <h3>사용자 제재</h3>
+      <form method="post" action="{{ url_for('admin.ban_user') }}">
+        {{ ban_form.hidden_tag() }}
+        <label>대상 사용자 ID {{ ban_form.target_user_id(class_='field') }}</label>
+        <label>제재 유형 {{ ban_form.ban_type(class_='field') }}</label>
+        <label>기간(일) {{ ban_form.days(class_='field') }}</label>
+        <label>사유 {{ ban_form.reason(class_='field') }}</label>
+        <label>메모 {{ ban_form.note(rows=4, class_='field') }}</label>
+        {{ ban_form.submit(class_='btn danger') }}
+      </form>
+    </div>
+
+    <div class="card">
+      <h3>IP 밴</h3>
+      <form method="post" action="{{ url_for('admin.ip_ban') }}">
+        {{ ip_ban_form.hidden_tag() }}
+        <label>IP {{ ip_ban_form.ip_address(class_='field') }}</label>
+        <label>기간(일) {{ ip_ban_form.days(class_='field') }}</label>
+        <label>사유 {{ ip_ban_form.reason(class_='field') }}</label>
+        <label>메모 {{ ip_ban_form.note(rows=4, class_='field') }}</label>
+        {{ ip_ban_form.submit(class_='btn danger') }}
+      </form>
+    </div>
+
+    <div class="card">
+      <h3>최근 제재</h3>
+      {% for b in bans %}
+      <div style="padding:8px 0;border-bottom:1px solid var(--line);">유저 {{ b.user_id }} / {{ b.ban_type }} / {{ b.reason }}</div>
+      {% endfor %}
+
+      <h3>최근 IP 밴</h3>
+      {% for ip in ip_bans %}
+      <div style="padding:8px 0;border-bottom:1px solid var(--line);">{{ ip.ip_address }} / {{ ip.reason }}</div>
+      {% endfor %}
+    </div>
+  </aside>
+</div>
+{% endblock %}

@@ -1,0 +1,51 @@
+{% extends 'base.html' %}
+{% block content %}
+<div class="card">
+  <h2>{% if post %}게시글 수정{% else %}글 작성{% endif %}</h2>
+  <form method="post" enctype="multipart/form-data">
+    {{ form.hidden_tag() }}
+
+    <div class="layout">
+      <div>
+        <label>제목 {{ form.title(class_='field') }}</label>
+      </div>
+      <div class="actions" style="align-items:end;">
+        <label style="width:100%;">게시판 {{ form.board(class_='field') }}</label>
+        <label style="width:100%;">말머리 {{ form.category(class_='field') }}</label>
+      </div>
+    </div>
+
+    <div class="toolbar">
+      <button class="tool" type="button" onclick="wrapTag('b')">B</button>
+      <button class="tool" type="button" onclick="wrapTag('i')"><em>I</em></button>
+      <button class="tool" type="button" onclick="wrapTag('u')"><u>U</u></button>
+      <button class="tool" type="button" onclick="insertSpan('color:red')">A</button>
+      <button class="tool" type="button" onclick="insertSpan('font-size:18px')">S</button>
+    </div>
+
+    <label>본문 {{ form.content(rows=14, class_='field', id='editor') }}</label>
+    <label>첨부파일 <input type="file" name="attachments" multiple class="field"></label>
+    <div class="muted">이미지, 동영상, 파일, 오디오 업로드 가능</div>
+
+    <div class="actions" style="margin-top:12px;">
+      {{ form.submit(class_='btn primary') }}
+      <a href="{{ url_for('board.index') }}" class="btn ghost">취소</a>
+    </div>
+  </form>
+</div>
+
+<script>
+function wrapTag(tag){
+  const el=document.getElementById('editor');
+  const s=el.selectionStart,e=el.selectionEnd,v=el.value;
+  const selected=v.slice(s,e)||'텍스트';
+  el.value=v.slice(0,s)+`<${tag}>${selected}</${tag}>`+v.slice(e);
+}
+function insertSpan(style){
+  const el=document.getElementById('editor');
+  const s=el.selectionStart,e=el.selectionEnd,v=el.value;
+  const selected=v.slice(s,e)||'텍스트';
+  el.value=v.slice(0,s)+`<span style="${style}">${selected}</span>`+v.slice(e);
+}
+</script>
+{% endblock %}

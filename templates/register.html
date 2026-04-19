@@ -1,0 +1,16 @@
+{% extends 'base.html' %}
+{% block title %}회원가입{% endblock %}
+{% block content %}
+<div class="card" style="max-width:560px;margin:30px auto;">
+  <h2>회원가입</h2>
+  <form method="post">
+    {{ form.hidden_tag() }}
+    <label>아이디 {{ form.username(class_='field') }}</label>
+    <label>이메일 {{ form.email(class_='field') }}</label>
+    <label>비밀번호 {{ form.password(class_='field') }}</label>
+    <label>비밀번호 확인 {{ form.confirm_password(class_='field') }}</label>
+    <label>학년 {{ form.grade(class_='field') }}</label>
+    {{ form.submit(class_='btn primary') }}
+  </form>
+</div>
+{% endblock %}
