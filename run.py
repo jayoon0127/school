@@ -1,6 +1,9 @@
 from app import create_app
 
-app = create_app()
-
-if __name__ == "__main__":
-    app.run(host="0.0.0.0", port=5000, debug=True)
+try:
+    app = create_app()
+except Exception as e:
+    import traceback
+    print("!!!!! APP STARTUP ERROR !!!!!")
+    traceback.print_exc()
+    raise
