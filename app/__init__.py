@@ -12,12 +12,19 @@ csrf = CSRFProtect()
 migrate = Migrate()
 
 def create_app():
-    app = Flask(__name__)
+    project_root = os.path.abspath(os.path.join(os.path.dirname(__file__), ".."))
+
+    app = Flask(
+        __name__,
+        template_folder=os.path.join(project_root, "templates"),
+        static_folder=os.path.join(project_root, "static"),
+    )
 
     upload_dir = os.getenv(
         "UPLOAD_DIR",
-        os.path.join(app.root_path, "static", "uploads")
+        os.path.join(app.static_folder, "uploads")
     )
+
 
     app.config.update(
         SECRET_KEY=os.getenv("SECRET_KEY", "change-this-to-a-long-random-secret"),
@@ -34,7 +41,7 @@ def create_app():
         UPLOAD_DIR=upload_dir,
     )
 
-    os.makedirs(app.config["UPLOAD_DIR"], exist_ok=True)
+    
 
     if os.getenv("TRUST_PROXY", "0") == "1":
         app.wsgi_app = ProxyFix(app.wsgi_app, x_for=1, x_proto=1, x_host=1, x_port=1)
